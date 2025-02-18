@@ -1,0 +1,8 @@
+# Forge && Soldeer
+dependencies/
+soldeer.lock
+out/
+cache/
+
+# Secret files
+.env

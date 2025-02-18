@@ -1,0 +1,36 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["dependencies"]
+auto_detect_remappings = false
+verbosity = 3
+show_progress = true
+block_number = 21000000
+block_timestamp = 1700000000
+ignored_warnings_from = ["dependencies/"]
+remappings = [
+    "@openzeppelin-contracts-upgradeable/=dependencies/@openzeppelin-contracts-upgradeable-5.2.0/",
+    "@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-4.2.0/",
+    "@origin-dollar/=dependencies/origin-dollar-v1/contracts/contracts/",
+    "@solady/=dependencies/solady-0.1.8/src/",
+    "@solmate/=dependencies/solmate-6.8.0/src/",
+    "forge-std/=dependencies/forge-std-1.9.6/src/",
+]
+
+[dependencies]
+forge-std = "1.9.6"
+solmate = "6.8.0"
+solady = "0.1.8"
+"@openzeppelin-contracts" = "4.2.0"
+"@openzeppelin-contracts-upgradeable" = "5.2.0"
+origin-dollar = { version = "v1", git = "https://github.com/OriginProtocol/origin-dollar.git", rev = "f517db7fbd12346c875789a51899cf6a34327e2c" }
+
+[soldeer]
+remappings_generate = true
+remappings_regenerate = false
+remappings_version = false
+remappings_prefix = "@"
+remappings_location = "config"
+recursive_deps = false
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
