@@ -15,7 +15,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Setup contract
 /// @notice Use to store all the global variable and deploy contracts.
-contract Setup is Helper {
+abstract contract Setup is Helper {
     /// @notice hevm.label() only exist with Foundry. Need to be set to false we using Medusa.
     bool public constant USE_LABELS = true;
 
@@ -86,7 +86,7 @@ contract Setup is Helper {
 
     /// @notice Generate address with name.
     function _generateAddress(string memory _name) internal returns (address generatedAddress) {
-        generatedAddress = makeAddr(_name);
+        generatedAddress = _makeAddr(_name);
         if (USE_LABELS) hevm.label(generatedAddress, _name);
     }
 

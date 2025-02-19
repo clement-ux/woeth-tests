@@ -17,7 +17,7 @@ abstract contract HelperClamp {
     /// @param enableLogs Whether to emit logs.
     /// @return ans The bounded value.
     function clamp(uint256 x, uint256 min, uint256 max, bool enableLogs) public returns (uint256) {
-        uint256 ans = _bound(x, min, max);
+        uint256 ans = _bound_(x, min, max);
         if (ans != x && enableLogs) {
             string memory valueStr = x.toString();
             string memory ansStr = ans.toString();
@@ -33,7 +33,7 @@ abstract contract HelperClamp {
     /// @param min The minimum value.
     /// @param max The maximum value.
     /// @return result The bounded value.
-    function _bound(uint256 x, uint256 min, uint256 max) internal pure returns (uint256 result) {
+    function _bound_(uint256 x, uint256 min, uint256 max) private pure returns (uint256 result) {
         require(min <= max, "StdUtils bound(uint256,uint256,uint256): Max is less than min.");
         // If x is between min and max, return x directly. This is to ensure that dictionary values
         // do not get shifted if the min is nonzero. More info: https://github.com/foundry-rs/forge-std/issues/188

@@ -27,7 +27,7 @@ abstract contract HelperAddress {
     address public dead;
     address public dead2;
 
-    function makeAddr(string memory _name) internal virtual returns (address) {
+    function _makeAddr(string memory _name) internal pure returns (address) {
         address _address = address(uint160(uint256(keccak256(abi.encodePacked(_name)))));
         require(_address != address(0), "Setup: invalid address");
         return _address;
