@@ -123,8 +123,4 @@ abstract contract Setup is Helper {
             hevm.label(address(woeth), "WOETH");
         }
     }
-
-    function test() public {
-        setup();
-    }
 }
