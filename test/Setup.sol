@@ -18,6 +18,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 abstract contract Setup is Helper {
     /// @notice hevm.label() only exist with Foundry. Need to be set to false we using Medusa.
     bool public constant USE_LABELS = true;
+    bool public constant USE_LOGS = true;
 
     //////////////////////////////////////////////////////
     /// --- EOAS
@@ -47,6 +48,12 @@ abstract contract Setup is Helper {
 
         // 4. Deploy contracts.
         _deployContracts();
+
+        // 5. Ignite contracts
+        _igniteContracts();
+
+        // 6. Approvals
+        _approvals();
     }
 
     //////////////////////////////////////////////////////
@@ -95,13 +102,13 @@ abstract contract Setup is Helper {
 
     /// @notice Deploy contracts for testing.
     function _deployContracts() internal virtual {
-        // Deploy implementations
-        oeth = new OETH();
-        woeth = new WOETH(ERC20(address(oeth)));
-
         // Deploy proxies
         OETHProxy oethProxy = new OETHProxy();
         WOETHProxy woethProxy = new WOETHProxy();
+
+        // Deploy implementations
+        oeth = new OETH();
+        woeth = new WOETH(ERC20(address(oethProxy)));
 
         // Initialize proxies
         oethProxy.initialize(
@@ -121,6 +128,20 @@ abstract contract Setup is Helper {
         if (USE_LABELS) {
             hevm.label(address(oeth), "OETH");
             hevm.label(address(woeth), "WOETH");
+        }
+    }
+
+    /// @notice Ignite contracts for testing.
+    function _igniteContracts() internal virtual {
+        hevm.prank(vault);
+        oeth.mint(dead, 10 ** 12);
+    }
+
+    /// @notice Approve all users for testing.
+    function _approvals() internal virtual {
+        for (uint256 i; i < users.length; i++) {
+            hevm.prank(users[i]);
+            oeth.approve(address(woeth), type(uint256).max);
         }
     }
 }
