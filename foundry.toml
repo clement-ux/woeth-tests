@@ -17,6 +17,13 @@ remappings = [
     "forge-std/=dependencies/forge-std-1.9.6/src/",
 ]
 
+[invariant]
+runs = 256
+depth = 100
+show_metrics = true
+fail_on_revert = true
+shrink_run_limit = 5000
+
 [dependencies]
 forge-std = "1.9.6"
 solmate = "6.8.0"
