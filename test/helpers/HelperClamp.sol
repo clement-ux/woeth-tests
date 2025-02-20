@@ -7,7 +7,7 @@ import {LibString} from "@solady/utils/LibString.sol";
 abstract contract HelperClamp {
     using LibString for uint256;
 
-    event Clamped(string);
+    event Clamped(string message);
 
     /// @notice Clamp a value to a range [min, max].
     /// @dev Higly inspired by PerimeterSec: https://github.com/perimetersec/fuzzlib/blob/main/src/helpers/HelperClamp.sol
@@ -21,7 +21,7 @@ abstract contract HelperClamp {
         if (ans != x && enableLogs) {
             string memory valueStr = x.toString();
             string memory ansStr = ans.toString();
-            bytes memory message = abi.encodePacked("Clamped value", valueStr, " to ", ansStr);
+            bytes memory message = abi.encodePacked("Clamped value ", valueStr, " to ", ansStr);
             emit Clamped(string(message));
         }
         return ans;
