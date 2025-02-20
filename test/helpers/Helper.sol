@@ -8,7 +8,8 @@ import {IHevm} from "../interfaces/IHevm.sol";
 import {HelperMath} from "./HelperMath.sol";
 import {HelperClamp} from "./HelperClamp.sol";
 import {HelperAddress} from "./HelperAddress.sol";
+import {HelperAssumption} from "./HelperAssumption.sol";
 
-abstract contract Helper is HelperMath, HelperClamp, HelperAddress {
+abstract contract Helper is HelperMath, HelperClamp, HelperAddress, HelperAssumption {
     IHevm internal constant hevm = IHevm(address(uint160(uint256(keccak256("hevm cheat code")))));
 }
