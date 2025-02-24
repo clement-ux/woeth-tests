@@ -52,7 +52,7 @@ abstract contract TargetFunctions is Properties {
         // Mint OETH to the user.
         uint256 mintedOETH = _mintOETHTo(user, amountToMint);
         // Convert back real user minted amount in shares.
-        uint256 sharesToMint = woeth.previewDeposit(mintedOETH);
+        uint256 sharesToMint = woeth.convertToShares(mintedOETH);
 
         // Mint WOETH.
         hevm.prank(user);
@@ -118,7 +118,7 @@ abstract contract TargetFunctions is Properties {
 
         // Bound amout to withdraw.
         _sharesToWithdraw = uint96(clamp(uint256(_sharesToWithdraw), 0, balance, USE_LOGS));
-        uint256 amountToWithdraw = woeth.previewWithdraw(_sharesToWithdraw);
+        uint256 amountToWithdraw = woeth.convertToAssets(_sharesToWithdraw);
 
         // Withdraw WOETH.
         hevm.prank(user);
@@ -127,7 +127,6 @@ abstract contract TargetFunctions is Properties {
         // Burn OETH from user.
         _burnOETHFrom(user, oeth.balanceOf(user));
     }
-
 
     /// @notice Handle change supply in OETH.
     /// @param _pctIncrease Percentage increase of the total supply.
@@ -144,6 +143,32 @@ abstract contract TargetFunctions is Properties {
 
         hevm.prank(vault);
         oeth.changeSupply(newTotalSupply);
+    }
+
+    /// @notice Handle donate in OETH.
+    /// @param _amount Amount of OETH to donate.
+    function handler_donate(uint88 _amount) public {
+        // Bound amout to donate.
+        _amount = uint88(clamp(uint256(_amount), 0, _mintableAmount(), USE_LOGS));
+        if (_amount == 0) return; // Todo: Log return reason
+
+        // Mint OETH to this.
+        uint256 mintedOETH = _mintOETHTo(address(this), _amount);
+
+        // Donate OETH
+        hevm.prank(address(this));
+        oeth.transfer(address(woeth), mintedOETH);
+        oeth.rebaseState(address(woeth));
+    }
+
+    /// @notice Handle manage supplies in OETH.
+    /// @param _amount Amount of OETH to manage.
+    /// @param _increase Increase or decrease the supply.
+    /// @param _nonRebasingSupply Use non-rebasing supply.
+    function handler_manageSupplies(uint88 _amount, bool _increase, bool _nonRebasingSupply) public {
+        // Dead is rebasing
+        // Dead2 is non-rebasing
+        _manageSupplies(_amount, _increase, _nonRebasingSupply ? dead : dead2);
     }
 
     //////////////////////////////////////////////////////
@@ -175,5 +200,28 @@ abstract contract TargetFunctions is Properties {
     function _mintableAmount() internal view returns (uint256) {
         uint256 oethTotalSupply = oeth.totalSupply();
         return (oethTotalSupply >= MAX_OETH_TOTAL_SUPPLY) ? 0 : (MAX_OETH_TOTAL_SUPPLY - oethTotalSupply);
+    }
+
+    /// @notice Helper function to manage supplies in OETH.
+    /// @param _amount Amount of OETH to manage.
+    /// @param _increase Increase or decrease the supply.
+    /// @param _address Address to manage supplies.
+    function _manageSupplies(uint256 _amount, bool _increase, address _address) internal {
+        if (_increase) {
+            _amount = clamp(_amount, 0, _mintableAmount(), USE_LOGS);
+            if (_amount == 0) return; // Todo: Log return reason
+
+            hevm.prank(vault);
+            oeth.mint(_address, _amount);
+        } else {
+            uint256 balance = oeth.balanceOf(_address);
+            if (balance <= INITIAL_DEAD_OETH_BALANCE) return; // Todo: Log return reason
+
+            _amount = clamp(_amount, 0, balance - INITIAL_DEAD_OETH_BALANCE, USE_LOGS);
+            hevm.prank(vault);
+            oeth.burn(_address, _amount);
+        }
+        require(oeth.balanceOf(dead) >= INITIAL_DEAD_OETH_BALANCE, "Setup: invalid rebasing dead balance");
+        require(oeth.balanceOf(dead2) >= INITIAL_DEAD_OETH_BALANCE, "Setup: invalid rebasing dead balance");
     }
 }

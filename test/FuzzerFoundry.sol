@@ -23,12 +23,14 @@ contract FuzzerFoundry is StdInvariant, TargetFunctions {
         targetContract(address(this));
 
         // Add selectors
-        bytes4[] memory selectors = new bytes4[](5);
+        bytes4[] memory selectors = new bytes4[](7);
         selectors[0] = this.handler_deposit.selector;
         selectors[1] = this.handler_mint.selector;
         selectors[2] = this.handler_redeem.selector;
         selectors[3] = this.handler_withdraw.selector;
         selectors[4] = this.handler_changeSupply.selector;
+        selectors[5] = this.handler_donate.selector;
+        selectors[6] = this.handler_manageSupplies.selector;
 
         // Target selectors
         targetSelector(FuzzSelector({addr: address(this), selectors: selectors}));
