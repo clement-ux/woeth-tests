@@ -35,6 +35,30 @@ abstract contract TargetFunctions is Properties {
         woeth.deposit(amountToMint, user);
     }
 
+    /// @notice Handle mint in WOETH.
+    /// @param _userId User id to mint WOETH.
+    /// @param _sharesToMint Amount of WOETH shares to mint.
+    ///        Maximum will be limited to type(uint88).max. This is a bit less than 310M.
+    ///        This is for the same reasons as the deposit function + because shares price will be always <= 1OETH.
+    /// _sharesToMint = type(uint88).max;
+    function handler_mint(uint8 _userId, uint88 _sharesToMint) public {
+        // Find a random user amongst the users.
+        address user = users[_userId % users.length];
+
+        // Convert shares in OETH amount (to ensure mintable amount).
+        uint256 amountToMint = woeth.previewMint(_sharesToMint);
+        if (amountToMint >= _mintableAmount()) return; // Todo: Log return reason
+
+        // Mint OETH to the user.
+        uint256 mintedOETH = _mintOETHTo(user, amountToMint);
+        // Convert back real user minted amount in shares.
+        uint256 sharesToMint = woeth.previewDeposit(mintedOETH);
+
+        // Mint WOETH.
+        hevm.prank(user);
+        woeth.mint(sharesToMint, user);
+    }
+
     /// @notice Handle redeem in WOETH.
     /// @param _userId User id to redeem WOETH.
     /// @param _amountToRedeem Amount of WOETH to redeem.
@@ -69,6 +93,46 @@ abstract contract TargetFunctions is Properties {
         _burnOETHFrom(user, oeth.balanceOf(user));
     }
 
+    /// @notice Handle withdraw in WOETH.
+    /// @param _userId User id to withdraw WOETH.
+    /// @param _sharesToWithdraw Amount of WOETH shares to withdraw.
+    ///        Maximum will be limited to type(uint96).max. This is a bit less than 80B.
+    ///        As the max OETH total supply is set to type(uint96).max, even with 100% of the OETH supply is
+    ///        deposited in the vault, the max amount of WOETH that can be withdrawn is type(uint96).max as the
+    ///        price cannot be go below 1.
+    /// _sharesToWithdraw = type(uint96).max;
+    function handler_withdraw(uint8 _userId, uint96 _sharesToWithdraw) public {
+        // Find an user with WOETH shares.
+        address user;
+        uint256 balance;
+        uint256 len = users.length;
+        for (uint256 i = _userId; i < len + _userId; i++) {
+            uint256 woethBalance = woeth.balanceOf(users[i % len]);
+            if (woethBalance > 0) {
+                user = users[i % len];
+                balance = woethBalance;
+                break;
+            }
+        }
+        if (user == address(0)) return; // Todo: Log return reason
+
+        // Bound amout to withdraw.
+        _sharesToWithdraw = uint96(clamp(uint256(_sharesToWithdraw), 0, balance, USE_LOGS));
+        uint256 amountToWithdraw = woeth.previewWithdraw(_sharesToWithdraw);
+
+        // Withdraw WOETH.
+        hevm.prank(user);
+        woeth.withdraw(amountToWithdraw, user, user);
+
+        // Burn OETH from user.
+        _burnOETHFrom(user, oeth.balanceOf(user));
+    }
+
+
+    /// @notice Handle change supply in OETH.
+    /// @param _pctIncrease Percentage increase of the total supply.
+    ///        Maximum should be 10%, is base 10_000, so 10% is 1_000. uint8 is not enough. So we use uint16.
+    ///        Min is 1 -> 0.01%.
     function handler_changeSupply(uint16 _pctIncrease) public {
         uint256 oethTotalSupply = oeth.totalSupply();
 
@@ -88,11 +152,14 @@ abstract contract TargetFunctions is Properties {
     /// @notice Helper function to mint OETH to a user.
     /// @param _user User to mint OETH to.
     /// @param _amountToMint Amount of OETH to mint.
-    function _mintOETHTo(address _user, uint88 _amountToMint) internal {
+    /// @return Amount of OETH effectively minted.
+    function _mintOETHTo(address _user, uint256 _amountToMint) internal returns (uint256) {
+        uint256 balance = oeth.balanceOf(_user);
         hevm.prank(vault);
         oeth.mint(_user, _amountToMint);
         // This should never happen, but just in case.
         require(oeth.totalSupply() <= MAX_OETH_TOTAL_SUPPLY, "OETH: total supply exceeds max");
+        return (oeth.balanceOf(_user) - balance);
     }
 
     /// @notice Helper function to burn OETH from a user.
