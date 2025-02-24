@@ -6,4 +6,6 @@ import {Setup} from "./Setup.sol";
 
 /// @title Properties contract
 /// @notice Use to store all the properties (invariants) of the system.
-abstract contract Properties is Setup {}
+abstract contract Properties is Setup {
+    uint256 public sum_donation;
+}

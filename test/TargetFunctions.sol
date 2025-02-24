@@ -158,17 +158,34 @@ abstract contract TargetFunctions is Properties {
         // Donate OETH
         hevm.prank(address(this));
         oeth.transfer(address(woeth), mintedOETH);
-        oeth.rebaseState(address(woeth));
+
+        // Sum donation.
+        sum_donation += mintedOETH;
     }
 
     /// @notice Handle manage supplies in OETH.
     /// @param _amount Amount of OETH to manage.
     /// @param _increase Increase or decrease the supply.
     /// @param _nonRebasingSupply Use non-rebasing supply.
-    function handler_manageSupplies(uint88 _amount, bool _increase, bool _nonRebasingSupply) public {
-        // Dead is rebasing
-        // Dead2 is non-rebasing
-        _manageSupplies(_amount, _increase, _nonRebasingSupply ? dead : dead2);
+    function handler_manageSupplies(uint80 _amount, bool _increase, bool _nonRebasingSupply) public {
+        _manageSupplies(_amount, _increase, _nonRebasingSupply ? rebasingAddr1 : nonRebasingAddr1);
+    }
+
+    function afterInvariant() public {
+        for (uint256 i = 0; i < users.length; i++) {
+            address _user = users[i];
+            uint256 balance = woeth.balanceOf(_user);
+            if (balance > 0) {
+                hevm.prank(_user);
+                woeth.redeem(balance, _user, _user);
+
+                _burnOETHFrom(_user, oeth.balanceOf(_user));
+            }
+        }
+
+        // Burn rebasingAddr1 and nonRebasingAddr1 OETH balances
+        _burnOETHFrom(rebasingAddr1, oeth.balanceOf(rebasingAddr1));
+        _burnOETHFrom(nonRebasingAddr1, oeth.balanceOf(nonRebasingAddr1));
     }
 
     //////////////////////////////////////////////////////
@@ -218,8 +235,7 @@ abstract contract TargetFunctions is Properties {
             if (balance <= INITIAL_DEAD_OETH_BALANCE) return; // Todo: Log return reason
 
             _amount = clamp(_amount, 0, balance - INITIAL_DEAD_OETH_BALANCE, USE_LOGS);
-            hevm.prank(vault);
-            oeth.burn(_address, _amount);
+            _burnOETHFrom(_address, _amount);
         }
         require(oeth.balanceOf(dead) >= INITIAL_DEAD_OETH_BALANCE, "Setup: invalid rebasing dead balance");
         require(oeth.balanceOf(dead2) >= INITIAL_DEAD_OETH_BALANCE, "Setup: invalid rebasing dead balance");
