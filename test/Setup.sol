@@ -24,6 +24,7 @@ abstract contract Setup is Helper {
     /// --- EOAS
     //////////////////////////////////////////////////////
     address[] public users;
+    address[] public deads;
     mapping(address user => string name) public userNames;
 
     //////////////////////////////////////////////////////
@@ -75,7 +76,8 @@ abstract contract Setup is Helper {
         david = _generatelUser(names[3], users, userNames);
 
         // Generate dead addresses
-        dead = _generateAddress("Dead");
+        dead = _generatelUser("Dead", deads, userNames);
+        dead2 = _generatelUser("Dead2", deads, userNames);
 
         // Generate fake vault
         vault = _generateAddress("Vault");
@@ -116,7 +118,7 @@ abstract contract Setup is Helper {
             address(this),
             abi.encodeWithSignature("initialize(string,string,address,uint256)", "Origin Ether", "OETH", vault, 1e27)
         );
-        woethProxy.initialize(address(woeth), address(this), "");
+        woethProxy.initialize(address(woeth), address(this), abi.encodeWithSignature("initialize()"));
 
         // Update address
         oeth = OETH(address(oethProxy));
@@ -133,8 +135,15 @@ abstract contract Setup is Helper {
 
     /// @notice Ignite contracts for testing.
     function _igniteContracts() internal virtual {
+        // Give 1e12 OETH to dead address (who rebase)
         hevm.prank(vault);
-        oeth.mint(dead, 10 ** 12);
+        oeth.mint(dead, INITIAL_DEAD_OETH_BALANCE);
+
+        // Give 1e12 OETH to dead address (who doesn't rebase)
+        hevm.prank(vault);
+        oeth.mint(dead2, INITIAL_DEAD_OETH_BALANCE);
+        hevm.prank(dead2);
+        oeth.rebaseOptOut();
     }
 
     /// @notice Approve all users for testing.

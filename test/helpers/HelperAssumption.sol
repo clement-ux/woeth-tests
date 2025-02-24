@@ -15,4 +15,7 @@ abstract contract HelperAssumption {
 
     /// @notice Maximum percentage change allowed for the total supply.
     uint256 public constant MAX_PCT_CHANGE_TOTAL_SUPPLY = 1_000; // 10%
+
+    /// @notice Initial amount of OETH send to dead addresses.
+    uint256 public constant INITIAL_DEAD_OETH_BALANCE = 10 ** 12;
 }
