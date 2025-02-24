@@ -30,9 +30,18 @@ abstract contract TargetFunctions is Properties {
         _mintOETHTo(user, _amountToMint);
         uint256 amountToMint = oeth.balanceOf(user);
 
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+        __deposited[user] += amountToMint;
+        __sum_deposited += amountToMint;
+
         // Deposit OETH.
         hevm.prank(user);
         woeth.deposit(amountToMint, user);
+
+        // --- Ghost data after ---
+        last_action = LastAction.DEPOSIT;
+        __totalAssetAfter = woeth.totalAssets();
     }
 
     /// @notice Handle mint in WOETH.
@@ -54,9 +63,18 @@ abstract contract TargetFunctions is Properties {
         // Convert back real user minted amount in shares.
         uint256 sharesToMint = woeth.convertToShares(mintedOETH);
 
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+        __sum_minted += mintedOETH;
+        __minted[user] += mintedOETH;
+
         // Mint WOETH.
         hevm.prank(user);
         woeth.mint(sharesToMint, user);
+
+        // --- Ghost data after ---
+        last_action = LastAction.MINT;
+        __totalAssetAfter = woeth.totalAssets();
     }
 
     /// @notice Handle redeem in WOETH.
@@ -85,9 +103,18 @@ abstract contract TargetFunctions is Properties {
         // Bound amout to redeem.
         _amountToRedeem = uint96(clamp(uint256(_amountToRedeem), 0, balance, USE_LOGS));
 
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+
         // Redeem WOETH.
         hevm.prank(user);
-        woeth.redeem(_amountToRedeem, user, user);
+        uint256 oethAmount = woeth.redeem(_amountToRedeem, user, user);
+
+        // --- Ghost data after ---
+        last_action = LastAction.REDEEM;
+        __totalAssetAfter = woeth.totalAssets();
+        __redeemed[user] += oethAmount;
+        __sum_redeemed += oethAmount;
 
         // Burn OETH from user.
         _burnOETHFrom(user, oeth.balanceOf(user));
@@ -120,9 +147,18 @@ abstract contract TargetFunctions is Properties {
         _sharesToWithdraw = uint96(clamp(uint256(_sharesToWithdraw), 0, balance, USE_LOGS));
         uint256 amountToWithdraw = woeth.convertToAssets(_sharesToWithdraw);
 
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+
         // Withdraw WOETH.
         hevm.prank(user);
         woeth.withdraw(amountToWithdraw, user, user);
+
+        // --- Ghost data after ---
+        last_action = LastAction.WITHDRAW;
+        __totalAssetAfter = woeth.totalAssets();
+        __withdrawn[user] += amountToWithdraw;
+        __sum_withdrawn += amountToWithdraw;
 
         // Burn OETH from user.
         _burnOETHFrom(user, oeth.balanceOf(user));
@@ -141,8 +177,15 @@ abstract contract TargetFunctions is Properties {
         // Calculate new total supply
         uint256 newTotalSupply = oethTotalSupply + (oethTotalSupply * _pctIncrease) / BASE_PCT;
 
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+
         hevm.prank(vault);
         oeth.changeSupply(newTotalSupply);
+
+        // --- Ghost data after ---
+        last_action = LastAction.CHANGE_SUPPLY;
+        __totalAssetAfter = woeth.totalAssets();
     }
 
     /// @notice Handle donate in OETH.
@@ -155,12 +198,19 @@ abstract contract TargetFunctions is Properties {
         // Mint OETH to this.
         uint256 mintedOETH = _mintOETHTo(address(this), _amount);
 
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+
         // Donate OETH
         hevm.prank(address(this));
         oeth.transfer(address(woeth), mintedOETH);
 
         // Sum donation.
-        sum_donation += mintedOETH;
+        __sum_donation += mintedOETH;
+
+        // --- Ghost data after ---
+        last_action = LastAction.DONATE;
+        __totalAssetAfter = woeth.totalAssets();
     }
 
     /// @notice Handle manage supplies in OETH.
@@ -168,7 +218,14 @@ abstract contract TargetFunctions is Properties {
     /// @param _increase Increase or decrease the supply.
     /// @param _nonRebasingSupply Use non-rebasing supply.
     function handler_manageSupplies(uint80 _amount, bool _increase, bool _nonRebasingSupply) public {
+        // --- Ghost data before ---
+        __totalAssetBefore = woeth.totalAssets();
+
         _manageSupplies(_amount, _increase, _nonRebasingSupply ? rebasingAddr1 : nonRebasingAddr1);
+
+        // --- Ghost data after ---
+        last_action = LastAction.MANAGE_SUPPLIES;
+        __totalAssetAfter = woeth.totalAssets();
     }
 
     function afterInvariant() public {
@@ -177,7 +234,11 @@ abstract contract TargetFunctions is Properties {
             uint256 balance = woeth.balanceOf(_user);
             if (balance > 0) {
                 hevm.prank(_user);
-                woeth.redeem(balance, _user, _user);
+                uint256 oethAmount = woeth.redeem(balance, _user, _user);
+
+                // --- Ghost data after ---
+                __redeemed[_user] += oethAmount;
+                __sum_redeemed += oethAmount;
 
                 _burnOETHFrom(_user, oeth.balanceOf(_user));
             }
@@ -186,6 +247,10 @@ abstract contract TargetFunctions is Properties {
         // Burn rebasingAddr1 and nonRebasingAddr1 OETH balances
         _burnOETHFrom(rebasingAddr1, oeth.balanceOf(rebasingAddr1));
         _burnOETHFrom(nonRebasingAddr1, oeth.balanceOf(nonRebasingAddr1));
+
+        // --- Assertions ---
+        require(__property_B(), "Invariant B failed");
+        require(__property_C(), "Invariant C failed");
     }
 
     //////////////////////////////////////////////////////
