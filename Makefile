@@ -22,7 +22,10 @@ test-std:
 	@forge test --summary --fail-fast
 
 test:
-	@FOUNDRY_NO_MATCH_CONTRACT=Invariant make test-std
+	@make test-std
+
+t:
+	@make test
 
 test-f-%:
 	@FOUNDRY_MATCH_TEST=$* make test-std
