@@ -7,6 +7,9 @@ import {Properties} from "./Properties.sol";
 /// @title TargetFunctions contract
 /// @notice Use to handle all calls to the tested contract.
 abstract contract TargetFunctions is Properties {
+    //////////////////////////////////////////////////////
+    /// --- HANDLERS
+    //////////////////////////////////////////////////////
     /// @notice Handle deposit in WOETH.
     /// @param _userId User id to deposit WOETH.
     /// @param _amountToMint Maximum amount of OETH that can be minted in a single transaction will be limited
@@ -25,10 +28,11 @@ abstract contract TargetFunctions is Properties {
 
         // Mint OETH to the user.
         _mintOETHTo(user, _amountToMint);
+        uint256 amountToMint = oeth.balanceOf(user);
 
         // Deposit OETH.
         hevm.prank(user);
-        woeth.deposit(_amountToMint, user);
+        woeth.deposit(amountToMint, user);
     }
 
     /// @notice Handle redeem in WOETH.
@@ -62,9 +66,25 @@ abstract contract TargetFunctions is Properties {
         woeth.redeem(_amountToRedeem, user, user);
 
         // Burn OETH from user.
-        _burnOETHFrom(user, _amountToRedeem);
+        _burnOETHFrom(user, oeth.balanceOf(user));
     }
 
+    function handler_changeSupply(uint16 _pctIncrease) public {
+        uint256 oethTotalSupply = oeth.totalSupply();
+
+        // Bound pct increase.
+        _pctIncrease = uint16(clamp(uint256(_pctIncrease), 1, MAX_PCT_CHANGE_TOTAL_SUPPLY, USE_LOGS));
+
+        // Calculate new total supply
+        uint256 newTotalSupply = oethTotalSupply + (oethTotalSupply * _pctIncrease) / BASE_PCT;
+
+        hevm.prank(vault);
+        oeth.changeSupply(newTotalSupply);
+    }
+
+    //////////////////////////////////////////////////////
+    /// --- INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////
     /// @notice Helper function to mint OETH to a user.
     /// @param _user User to mint OETH to.
     /// @param _amountToMint Amount of OETH to mint.
@@ -78,7 +98,7 @@ abstract contract TargetFunctions is Properties {
     /// @notice Helper function to burn OETH from a user.
     /// @param _user User to burn OETH from.
     /// @param _amountToBurn Amount of OETH to burn.
-    function _burnOETHFrom(address _user, uint96 _amountToBurn) internal {
+    function _burnOETHFrom(address _user, uint256 _amountToBurn) internal {
         hevm.prank(vault);
         oeth.burn(_user, _amountToBurn);
     }
