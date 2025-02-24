@@ -10,4 +10,9 @@ abstract contract HelperAssumption {
     ///@dev Type(uint96).max is just a bit less than 80B. This ensure use than we are not using
     ///     a value that is too high, but still high enough to be realistic.
     uint256 public constant MAX_OETH_TOTAL_SUPPLY = type(uint96).max;
+
+    uint256 public constant BASE_PCT = 10_000;
+
+    /// @notice Maximum percentage change allowed for the total supply.
+    uint256 public constant MAX_PCT_CHANGE_TOTAL_SUPPLY = 1_000; // 10%
 }
