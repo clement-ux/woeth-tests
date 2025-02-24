@@ -17,5 +17,5 @@ abstract contract HelperAssumption {
     uint256 public constant MAX_PCT_CHANGE_TOTAL_SUPPLY = 1_000; // 10%
 
     /// @notice Initial amount of OETH send to dead addresses.
-    uint256 public constant INITIAL_DEAD_OETH_BALANCE = 10 ** 12;
+    uint256 public constant INITIAL_DEAD_OETH_BALANCE = 11e16;
 }

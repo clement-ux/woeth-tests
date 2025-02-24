@@ -78,6 +78,7 @@ abstract contract Setup is Helper {
         // Generate dead addresses
         dead = _generatelUser("Dead", deads, userNames);
         dead2 = _generatelUser("Dead2", deads, userNames);
+        dead3 = _generateAddress("Dead3");
 
         // Generate fake vault
         vault = _generateAddress("Vault");
@@ -135,15 +136,23 @@ abstract contract Setup is Helper {
 
     /// @notice Ignite contracts for testing.
     function _igniteContracts() internal virtual {
-        // Give 1e12 OETH to dead address (who rebase)
+        // Give 0.011 ETH of OETH to dead address (who rebase)
         hevm.prank(vault);
         oeth.mint(dead, INITIAL_DEAD_OETH_BALANCE);
 
-        // Give 1e12 OETH to dead address (who doesn't rebase)
+        // Give 0.011 ETH of OETH to dead address (who doesn't rebase)
         hevm.prank(vault);
         oeth.mint(dead2, INITIAL_DEAD_OETH_BALANCE);
         hevm.prank(dead2);
         oeth.rebaseOptOut();
+
+        // Deposit 0.011 ETH of OETH in WOETH
+        hevm.prank(vault);
+        oeth.mint(dead3, INITIAL_DEAD_OETH_BALANCE);
+        hevm.prank(dead3);
+        oeth.approve(address(woeth), type(uint256).max);
+        hevm.prank(dead3);
+        woeth.deposit(INITIAL_DEAD_OETH_BALANCE, dead3);
     }
 
     /// @notice Approve all users for testing.

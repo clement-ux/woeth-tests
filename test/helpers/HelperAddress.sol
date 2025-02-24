@@ -26,6 +26,7 @@ abstract contract HelperAddress {
 
     address public dead;
     address public dead2;
+    address public dead3;
 
     function _makeAddr(string memory _name) internal pure returns (address) {
         address _address = address(uint160(uint256(keccak256(abi.encodePacked(_name)))));
