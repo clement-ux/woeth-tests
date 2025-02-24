@@ -28,6 +28,9 @@ abstract contract HelperAddress {
     address public dead2;
     address public dead3;
 
+    address public rebasingAddr1;
+    address public nonRebasingAddr1;
+
     function _makeAddr(string memory _name) internal pure returns (address) {
         address _address = address(uint160(uint256(keccak256(abi.encodePacked(_name)))));
         require(_address != address(0), "Setup: invalid address");

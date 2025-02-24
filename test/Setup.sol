@@ -80,6 +80,10 @@ abstract contract Setup is Helper {
         dead2 = _generatelUser("Dead2", deads, userNames);
         dead3 = _generateAddress("Dead3");
 
+        // Generate rebasing and non-rebasing addresses
+        rebasingAddr1 = _generateAddress("RebasingAddr1");
+        nonRebasingAddr1 = _generateAddress("NonRebasingAddr1");
+
         // Generate fake vault
         vault = _generateAddress("Vault");
     }
