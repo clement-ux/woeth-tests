@@ -200,13 +200,16 @@ abstract contract TargetFunctions is Properties {
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
+        (uint256 creditBefore,,) = oeth.creditsBalanceOfHighres(address(woeth));
 
         // Donate OETH
         hevm.prank(address(this));
         oeth.transfer(address(woeth), mintedOETH);
 
         // Sum donation.
+        (uint256 creditAfter,,) = oeth.creditsBalanceOfHighres(address(woeth));
         __sum_donation += mintedOETH;
+        __sum_donated_credits += (creditAfter - creditBefore);
 
         // --- Ghost data after ---
         last_action = LastAction.DONATE;

@@ -3,13 +3,14 @@ pragma solidity 0.8.28;
 
 // Foundry
 import {StdInvariant} from "forge-std/StdInvariant.sol";
+import {StdAssertions} from "forge-std/StdAssertions.sol";
 
 // Contracts
 import {TargetFunctions} from "./TargetFunctions.sol";
 
 /// @title FuzzerFoundry contract
 /// @notice Foundry interface for the fuzzer.
-contract FuzzerFoundry is StdInvariant, TargetFunctions {
+contract FuzzerFoundry is StdInvariant, StdAssertions, TargetFunctions {
     //////////////////////////////////////////////////////
     /// --- SETUP
     //////////////////////////////////////////////////////
@@ -36,7 +37,7 @@ contract FuzzerFoundry is StdInvariant, TargetFunctions {
         targetSelector(FuzzSelector({addr: address(this), selectors: selectors}));
     }
 
-    function invariant_A() public {
-        require(property_A(), "Invariant A failed");
+    function invariant_D() public {
+        require(property_D(), "Invariant D failed");
     }
 }

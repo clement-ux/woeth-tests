@@ -1,13 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
-abstract contract HelperLog {
+library Log {
     event log(string message);
-    event log(uint256 number);
-    event log(address addr);
-    event log(bool boolean);
-    event log(bytes32 data);
-    event log(bytes data);
 
     event log_named_uint(string name, uint256 number);
     event log_named_address(string name, address addr);

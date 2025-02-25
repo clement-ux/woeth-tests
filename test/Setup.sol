@@ -119,9 +119,7 @@ abstract contract Setup is Helper {
 
         // Initialize proxies
         oethProxy.initialize(
-            address(oeth),
-            address(this),
-            abi.encodeWithSignature("initialize(address,uint256)", vault, 1e27)
+            address(oeth), address(this), abi.encodeWithSignature("initialize(address,uint256)", vault, 1e27)
         );
         woethProxy.initialize(address(woeth), address(this), abi.encodeWithSignature("initialize()"));
 
