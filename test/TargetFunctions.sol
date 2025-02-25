@@ -220,14 +220,14 @@ abstract contract TargetFunctions is Properties {
     /// @param _amount Amount of OETH to manage.
     /// @param _increase Increase or decrease the supply.
     /// @param _nonRebasingSupply Use non-rebasing supply.
-    function handler_manageSupplies(uint80 _amount, bool _increase, bool _nonRebasingSupply) public {
+    function handler_mintOrBurnExtraOETH(uint80 _amount, bool _increase, bool _nonRebasingSupply) public {
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
 
         _manageSupplies(_amount, _increase, _nonRebasingSupply ? rebasingAddr1 : nonRebasingAddr1);
 
         // --- Ghost data after ---
-        last_action = LastAction.MANAGE_SUPPLIES;
+        last_action = LastAction.MINT_OR_BURN_EXTRA_OETH;
         __totalAssetAfter = woeth.totalAssets();
     }
 

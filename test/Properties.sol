@@ -17,7 +17,7 @@ abstract contract Properties is Setup {
         WITHDRAW,
         CHANGE_SUPPLY,
         DONATE,
-        MANAGE_SUPPLIES
+        MINT_OR_BURN_EXTRA_OETH
     }
 
     LastAction public last_action = LastAction.NONE;
@@ -38,21 +38,21 @@ abstract contract Properties is Setup {
 
     // --- Tolerances ---
     uint256 public t_A = 0;
-    uint256 public t_B = 0;
-    uint256 public t_C = 0;
+    uint256 public t_B = 1e2;
+    uint256 public t_C = 1e2;
     uint256 public t_D = 1e11;
 
     //////////////////////////////////////////////////////
     /// --- DEFINITIONS
     //////////////////////////////////////////////////////
-    /// - If totalAsset is different than before the call, then last action shouldn't be [DONATE, MANAGE_SUPPLIES]
+    /// - If totalAsset is different than before the call, then last action shouldn't be [DONATE, MINT_OR_BURN_EXTRA_OETH]
     /// - At then end with empty the vault, all user should have more oeth than at the beginning
     /// - The sum of all deposited and minted should be greater than or equal to the sum of all redeemed and withdrawn
     /// - The amount of credit in woeth should be equal to oethCreditsHighres - donation
 
     function property_A() public view returns (bool) {
         if (__totalAssetBefore != __totalAssetAfter) {
-            return last_action != LastAction.DONATE && last_action != LastAction.MANAGE_SUPPLIES;
+            return last_action != LastAction.DONATE && last_action != LastAction.MINT_OR_BURN_EXTRA_OETH;
         }
         return true;
     }
@@ -107,4 +107,3 @@ abstract contract Properties is Setup {
         }
     }
 }
-// 

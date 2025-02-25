@@ -31,7 +31,7 @@ contract FuzzerFoundry is StdInvariant, StdAssertions, TargetFunctions {
         selectors[3] = this.handler_withdraw.selector;
         selectors[4] = this.handler_changeSupply.selector;
         selectors[5] = this.handler_donate.selector;
-        selectors[6] = this.handler_manageSupplies.selector;
+        selectors[6] = this.handler_mintOrBurnExtraOETH.selector;
 
         // Target selectors
         targetSelector(FuzzSelector({addr: address(this), selectors: selectors}));
