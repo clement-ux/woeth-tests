@@ -121,16 +121,13 @@ abstract contract Setup is Helper {
         oethProxy.initialize(
             address(oeth),
             address(this),
-            abi.encodeWithSignature("initialize(string,string,address,uint256)", "Origin Ether", "OETH", vault, 1e27)
+            abi.encodeWithSignature("initialize(address,uint256)", vault, 1e27)
         );
         woethProxy.initialize(address(woeth), address(this), abi.encodeWithSignature("initialize()"));
 
         // Update address
         oeth = OETH(address(oethProxy));
         woeth = WOETH(address(woethProxy));
-
-        // Initilize2 WOETH
-        woeth.initialize2();
 
         if (USE_LABELS) {
             hevm.label(address(oeth), "OETH");
