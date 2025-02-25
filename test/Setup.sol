@@ -17,7 +17,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /// @notice Use to store all the global variable and deploy contracts.
 abstract contract Setup is Helper {
     /// @notice hevm.label() only exist with Foundry. Need to be set to false we using Medusa.
-    bool public constant USE_LABELS = true;
+    bool public constant USE_LABELS = false;
     bool public constant USE_LOGS = true;
 
     //////////////////////////////////////////////////////
