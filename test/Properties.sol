@@ -38,9 +38,9 @@ abstract contract Properties is Setup {
 
     // --- Tolerances ---
     uint256 public t_A = 0;
-    uint256 public t_B = 1e6;
-    uint256 public t_C = 1e6;
-    uint256 public t_D = 1e2;
+    uint256 public t_B = 0;
+    uint256 public t_C = 0;
+    uint256 public t_D = 1e11;
 
     //////////////////////////////////////////////////////
     /// --- DEFINITIONS

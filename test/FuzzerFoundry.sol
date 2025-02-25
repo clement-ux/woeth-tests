@@ -37,6 +37,10 @@ contract FuzzerFoundry is StdInvariant, StdAssertions, TargetFunctions {
         targetSelector(FuzzSelector({addr: address(this), selectors: selectors}));
     }
 
+    function invariant_A() public view {
+        require(property_A(), "Invariant A failed");
+    }
+
     function invariant_D() public {
         require(property_D(), "Invariant D failed");
     }
