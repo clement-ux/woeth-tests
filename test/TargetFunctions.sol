@@ -59,6 +59,7 @@ abstract contract TargetFunctions is Properties {
         // Find a random user amongst the users.
         address user = users[_userId % users.length];
 
+        _sharesToMint = uint88(clamp(uint256(_sharesToMint), 1, type(uint88).max, USE_LOGS));
         // Convert shares in OETH amount (to ensure mintable amount).
         uint256 amountToMint = woeth.previewMint(_sharesToMint);
         if (amountToMint >= _mintableAmount()) return; // Todo: Log return reason
