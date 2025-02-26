@@ -48,22 +48,27 @@ abstract contract Properties is Setup {
     bool public __maxWithdraw_success = true;
 
     // --- Tolerances ---
-    uint256 public t_B = 1e2;
-    uint256 public t_C = 1e2;
-    uint256 public t_D = 1e11;
+    uint256 public t_B = 10 wei;
+    uint256 public t_C = 10 wei;
+    uint256 public t_D = 1e11 wei;
 
     //////////////////////////////////////////////////////
     /// --- DEFINITIONS
     //////////////////////////////////////////////////////
-    /// - If totalAsset is different than before the call, then last action shouldn't be [DONATE, MINT_OR_BURN_EXTRA_OETH]
-    /// - At then end with empty the vault, all user should have more oeth than at the beginning
-    /// - The sum of all deposited and minted should be greater than or equal to the sum of all redeemed and withdrawn
-    /// - The amount of credit in woeth should be equal to oethCreditsHighres - donation
+    /// (t: stands for tolerance:)
+    /// --- General
+    /// - If totalAsset is different than before the call, then last action shouldn't be [DONATE, MINT_OR_BURN_EXTRA_OETH] (t: 0)
+    /// - At then end with empty the vault, all user should have more oeth than at the beginning (tolerance: 10 wei)
+    /// - The sum of all deposited and minted should be lower than or equal to the sum of all redeemed and withdrawn (tolerance: 10 wei)
+    /// - The amount of credit in woeth should be equal to oethCreditsHighres - donation (t: 1e11 wei)
     /// --- ERC4626
-    /// - The views functions should never revert
-    /// - If a user deposit more than 1wei of OETH, he should receive at least 1wei of WOETH.
-    ///     If he doesn't receive any WOETH and the amount of OETH deposited > totalAsset/totalSupply -> this is a issue.
-    /// - If a user withdraw or redeem 1 wei or more of WOETH, he should have less WOETH after the operation and more OETH.
+    /// - The views functions should never revert (t:0)
+    /// - On deposit or mint:
+    ///     - If user balance of WOETH is the same after the operation, oeth amount sent should be less than or equal to (totalAsset/totalSupply). (t:0)
+    ///     - If user balance of WOETH is different after the operation, oeth amount sent should be scritly positif. (t:0)
+    /// - On withdraw or redeem:
+    ///     - If user balance of WOETH is the same after the operation, oeth amount received should be 0. (t:0) 
+    ///     - If user balance of WOETH is different after the operation, oeth amount received should be strictly positif. (t:0)
 
     function property_A() public view returns (bool) {
         if (__totalAssetBefore != __totalAssetAfter) {
@@ -121,7 +126,8 @@ abstract contract Properties is Setup {
 
     function property_4626_deposit_mint() public returns (bool) {
         if (last_action == LastAction.DEPOSIT || last_action == LastAction.MINT) {
-            // If the user woeth balance is the same after mint or deposit, this means that user deposited only 1wei
+            // If the user woeth balance is the same after mint or deposit, 
+            // oeth amount sent should be less than or equal to (totalAsset/totalSupply)
             if (__user_woeth_balance_after == __user_woeth_balance_before) {
                 uint256 totalAssets = woeth.totalAssets();
                 uint256 totalSupply = woeth.totalSupply();
