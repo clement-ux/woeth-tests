@@ -54,7 +54,7 @@ abstract contract Properties is Setup {
     uint256 public t_B = 1e2;
     uint256 public t_C = 1e2;
     uint256 public t_D = 1e11;
-    uint256 public t_4626_A = 10_000 wei;
+    uint256 public t_4626_A = 0;
 
     //////////////////////////////////////////////////////
     /// --- DEFINITIONS
@@ -137,7 +137,9 @@ abstract contract Properties is Setup {
             }
             // If the user woeth balance is the same after mint or deposit, this means that user deposited only 1wei
             else if (__user_woeth_balance_after == __user_woeth_balance_before) {
-                if (__user_oeth_balance_after + t_4626_A < __user_oeth_balance_before) {
+                uint256 totalAssets = woeth.totalAssets();
+                uint256 totalSupply = woeth.totalSupply();
+                if (__user_oeth_balance_before > (totalAssets / totalSupply)) {
                     _logOETHAndWOETHBalances("B");
                     return false;
                 }
@@ -151,7 +153,6 @@ abstract contract Properties is Setup {
                     _logOETHAndWOETHBalances("C");
                     return false;
                 }
-                return true;
             }
         }
         return true;
