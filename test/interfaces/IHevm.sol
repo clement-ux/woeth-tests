@@ -84,4 +84,5 @@ interface IHevm {
 
     // Only exist with Foundry.
     function label(address account, string calldata newLabel) external;
+    function assume(bool assumption) external;
 }

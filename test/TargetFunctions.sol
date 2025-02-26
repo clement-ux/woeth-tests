@@ -24,11 +24,17 @@ abstract contract TargetFunctions is Properties {
 
         // Bound amout to mint.
         _amountToMint = uint88(clamp(uint256(_amountToMint), 0, _mintableAmount(), USE_LOGS));
-        if (_amountToMint == 0) return; // Todo: Log return reason
+        if (_amountToMint == 0) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // Mint OETH to the user.
         uint256 balanceOETH = _mintOETHTo(user, _amountToMint);
-        if (balanceOETH == 0) return; // Todo: Log return reason
+        if (balanceOETH == 0) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
@@ -63,13 +69,19 @@ abstract contract TargetFunctions is Properties {
 
         // Convert shares in OETH amount (to ensure mintable amount).
         uint256 amountToMint = woeth.previewMint(_sharesToMint);
-        if (amountToMint >= _mintableAmount()) return; // Todo: Log return reason
+        if (amountToMint >= _mintableAmount()) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // Mint OETH to the user.
         uint256 mintedOETH = _mintOETHTo(user, amountToMint);
         // Convert back real user minted amount in shares.
         uint256 sharesToMint = woeth.convertToShares(mintedOETH);
-        if (sharesToMint == 0) return; // Todo: Log return reason
+        if (sharesToMint == 0) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
@@ -110,7 +122,10 @@ abstract contract TargetFunctions is Properties {
                 break;
             }
         }
-        if (user == address(0) || balance == 0) return; // Todo: Log return reason
+        if (user == address(0) || balance == 0) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // Bound amout to redeem.
         _amountToRedeem = uint96(clamp(uint256(_amountToRedeem), 1, balance, USE_LOGS));
@@ -157,7 +172,10 @@ abstract contract TargetFunctions is Properties {
                 break;
             }
         }
-        if (user == address(0) || balance == 0) return; // Todo: Log return reason
+        if (user == address(0) || balance == 0) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // Bound amout to withdraw.
         _sharesToWithdraw = uint96(clamp(uint256(_sharesToWithdraw), 1, balance, USE_LOGS));
@@ -214,7 +232,10 @@ abstract contract TargetFunctions is Properties {
     function handler_donate(uint88 _amount) public {
         // Bound amout to donate.
         _amount = uint88(clamp(uint256(_amount), 0, _mintableAmount(), USE_LOGS));
-        if (_amount == 0) return; // Todo: Log return reason
+        if (_amount == 0) {
+            if (USE_ASSUME) hevm.assume(false);
+            else return;
+        }
 
         // Mint OETH to this.
         uint256 mintedOETH = _mintOETHTo(address(this), _amount);
@@ -347,13 +368,19 @@ abstract contract TargetFunctions is Properties {
     function _manageSupplies(uint256 _amount, bool _increase, address _address) internal {
         if (_increase) {
             _amount = clamp(_amount, 0, _mintableAmount(), USE_LOGS);
-            if (_amount == 0) return; // Todo: Log return reason
+            if (_amount == 0) {
+                if (USE_ASSUME) hevm.assume(false);
+                else return;
+            }
 
             hevm.prank(vault);
             oeth.mint(_address, _amount);
         } else {
             uint256 balance = oeth.balanceOf(_address);
-            if (balance <= INITIAL_DEAD_OETH_BALANCE) return; // Todo: Log return reason
+            if (balance <= INITIAL_DEAD_OETH_BALANCE) {
+                if (USE_ASSUME) hevm.assume(false);
+                else return;
+            }
 
             _amount = clamp(_amount, 0, balance - INITIAL_DEAD_OETH_BALANCE, USE_LOGS);
             _burnOETHFrom(_address, _amount);
