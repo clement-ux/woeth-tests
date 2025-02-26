@@ -30,7 +30,7 @@ solmate = "6.8.0"
 solady = "0.1.8"
 "@openzeppelin-contracts" = "4.2.0"
 "@openzeppelin-contracts-upgradeable" = "5.2.0"
-origin-dollar = { version = "v1", git = "https://github.com/OriginProtocol/origin-dollar.git", rev = "390e4a24e7b5c9323bb52bd8cfed393612b8dc57" }
+origin-dollar = { version = "v1", git = "https://github.com/OriginProtocol/origin-dollar.git", rev = "c005824d9062cef9705fb02aaa2114ee64241362" }
 
 [soldeer]
 remappings_generate = true
