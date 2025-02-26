@@ -27,20 +27,19 @@ abstract contract TargetFunctions is Properties {
         if (_amountToMint == 0) return; // Todo: Log return reason
 
         // Mint OETH to the user.
-        _mintOETHTo(user, _amountToMint);
-        uint256 amountToMint = oeth.balanceOf(user);
-        if (amountToMint == 0) return; // Todo: Log return reason
+        uint256 balanceOETH = _mintOETHTo(user, _amountToMint);
+        if (balanceOETH == 0) return; // Todo: Log return reason
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
-        __deposited[user] += amountToMint;
-        __sum_deposited += amountToMint;
+        __deposited[user] += balanceOETH;
+        __sum_deposited += balanceOETH;
         __user_oeth_balance_before = oeth.balanceOf(user);
         __user_woeth_balance_before = woeth.balanceOf(user);
 
         // Deposit OETH.
         hevm.prank(user);
-        woeth.deposit(amountToMint, user);
+        woeth.deposit(balanceOETH, user);
 
         // --- Ghost data after ---
         last_action = LastAction.DEPOSIT;
@@ -201,6 +200,7 @@ abstract contract TargetFunctions is Properties {
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
 
+        // Change supply
         hevm.prank(vault);
         oeth.changeSupply(newTotalSupply);
 
@@ -229,7 +229,6 @@ abstract contract TargetFunctions is Properties {
 
         // Sum donation.
         (uint256 creditAfter,,) = oeth.creditsBalanceOfHighres(address(woeth));
-        __sum_donation += mintedOETH;
         __sum_donated_credits += (creditAfter - creditBefore);
 
         // --- Ghost data after ---

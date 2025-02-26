@@ -10,7 +10,7 @@ import {WOETH} from "@origin-dollar/token/WOETH.sol";
 import {OETHProxy} from "@origin-dollar/proxies/Proxies.sol";
 import {WOETHProxy} from "@origin-dollar/proxies/Proxies.sol";
 
-// Interfaces
+// Contracts - OpenZeppelin
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title Setup contract

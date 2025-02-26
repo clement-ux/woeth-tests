@@ -4,6 +4,7 @@ pragma solidity 0.8.28;
 // Contracts
 import {Setup} from "./Setup.sol";
 
+// Libraries
 import {Log} from "./helpers/HelperLog.sol";
 
 /// @title Properties contract
@@ -27,7 +28,6 @@ abstract contract Properties is Setup {
     mapping(address => uint256) public __minted;
     mapping(address => uint256) public __redeemed;
     mapping(address => uint256) public __withdrawn;
-    uint256 public __sum_donation;
     uint256 public __totalAssetBefore;
     uint256 public __totalAssetAfter;
     uint256 public __sum_deposited;
@@ -48,7 +48,6 @@ abstract contract Properties is Setup {
     bool public __maxWithdraw_success = true;
 
     // --- Tolerances ---
-    uint256 public t_A = 0;
     uint256 public t_B = 1e2;
     uint256 public t_C = 1e2;
     uint256 public t_D = 1e11;
