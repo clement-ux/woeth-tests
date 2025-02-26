@@ -34,6 +34,9 @@ abstract contract TargetFunctions is Properties {
         __totalAssetBefore = woeth.totalAssets();
         __deposited[user] += amountToMint;
         __sum_deposited += amountToMint;
+        __user_oeth_balance_before = oeth.balanceOf(user);
+        __user_woeth_balance_before = woeth.balanceOf(user);
+        __user_deposit_mint_zero = amountToMint == 0;
 
         // Deposit OETH.
         hevm.prank(user);
@@ -42,6 +45,8 @@ abstract contract TargetFunctions is Properties {
         // --- Ghost data after ---
         last_action = LastAction.DEPOSIT;
         __totalAssetAfter = woeth.totalAssets();
+        __user_oeth_balance_after = oeth.balanceOf(user);
+        __user_woeth_balance_after = woeth.balanceOf(user);
     }
 
     /// @notice Handle mint in WOETH.
@@ -67,6 +72,9 @@ abstract contract TargetFunctions is Properties {
         __totalAssetBefore = woeth.totalAssets();
         __sum_minted += mintedOETH;
         __minted[user] += mintedOETH;
+        __user_oeth_balance_before = oeth.balanceOf(user);
+        __user_woeth_balance_before = woeth.balanceOf(user);
+        __user_deposit_mint_zero = sharesToMint == 0;
 
         // Mint WOETH.
         hevm.prank(user);
@@ -75,6 +83,8 @@ abstract contract TargetFunctions is Properties {
         // --- Ghost data after ---
         last_action = LastAction.MINT;
         __totalAssetAfter = woeth.totalAssets();
+        __user_oeth_balance_after = oeth.balanceOf(user);
+        __user_woeth_balance_after = woeth.balanceOf(user);
     }
 
     /// @notice Handle redeem in WOETH.
@@ -105,6 +115,9 @@ abstract contract TargetFunctions is Properties {
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
+        __user_oeth_balance_before = oeth.balanceOf(user);
+        __user_woeth_balance_before = woeth.balanceOf(user);
+        __user_withdraw_redeem_zero = _amountToRedeem == 0;
 
         // Redeem WOETH.
         hevm.prank(user);
@@ -115,6 +128,8 @@ abstract contract TargetFunctions is Properties {
         __totalAssetAfter = woeth.totalAssets();
         __redeemed[user] += oethAmount;
         __sum_redeemed += oethAmount;
+        __user_oeth_balance_after = oeth.balanceOf(user);
+        __user_woeth_balance_after = woeth.balanceOf(user);
 
         // Burn OETH from user.
         _burnOETHFrom(user, oeth.balanceOf(user));
@@ -149,6 +164,9 @@ abstract contract TargetFunctions is Properties {
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
+        __user_oeth_balance_before = oeth.balanceOf(user);
+        __user_woeth_balance_before = woeth.balanceOf(user);
+        __user_withdraw_redeem_zero = amountToWithdraw == 0;
 
         // Withdraw WOETH.
         hevm.prank(user);
@@ -159,6 +177,8 @@ abstract contract TargetFunctions is Properties {
         __totalAssetAfter = woeth.totalAssets();
         __withdrawn[user] += amountToWithdraw;
         __sum_withdrawn += amountToWithdraw;
+        __user_oeth_balance_after = oeth.balanceOf(user);
+        __user_woeth_balance_after = woeth.balanceOf(user);
 
         // Burn OETH from user.
         _burnOETHFrom(user, oeth.balanceOf(user));
@@ -231,7 +251,7 @@ abstract contract TargetFunctions is Properties {
         __totalAssetAfter = woeth.totalAssets();
     }
 
-    /// @notice Handle views function 
+    /// @notice Handle views function
     function handler_views(uint8 _userId, uint256 _value) public {
         // Convert to assets
         uint256 shares = clamp(_value, 0, type(uint96).max, USE_LOGS);

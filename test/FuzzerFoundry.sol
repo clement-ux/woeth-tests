@@ -49,4 +49,12 @@ contract FuzzerFoundry is StdInvariant, StdAssertions, TargetFunctions {
     function invariant_4626_views() public view {
         require(property_4626_views(), "Invariant 4626 views failed");
     }
+
+    function invariant_4626_deposit_mint() public {
+        require(property_4626_deposit_mint(), "Invariant 4626 deposit failed");
+    }
+
+    function invariant_4626_withdraw_redeem() public {
+        require(property_4626_withdraw_redeem(), "Invariant 4626 withdraw deposit failed");
+    }
 }

@@ -35,6 +35,12 @@ abstract contract Properties is Setup {
     uint256 public __sum_redeemed;
     uint256 public __sum_withdrawn;
     uint256 public __sum_donated_credits;
+    uint256 public __user_woeth_balance_before;
+    uint256 public __user_oeth_balance_before;
+    uint256 public __user_woeth_balance_after;
+    uint256 public __user_oeth_balance_after;
+    bool public __user_deposit_mint_zero;
+    bool public __user_withdraw_redeem_zero;
     bool public __convertToAssets_success = true;
     bool public __convertToShares_success = true;
     bool public __totalAssets_success = true;
@@ -48,6 +54,7 @@ abstract contract Properties is Setup {
     uint256 public t_B = 1e2;
     uint256 public t_C = 1e2;
     uint256 public t_D = 1e11;
+    uint256 public t_4626_A = 1 wei;
 
     //////////////////////////////////////////////////////
     /// --- DEFINITIONS
@@ -56,6 +63,13 @@ abstract contract Properties is Setup {
     /// - At then end with empty the vault, all user should have more oeth than at the beginning
     /// - The sum of all deposited and minted should be greater than or equal to the sum of all redeemed and withdrawn
     /// - The amount of credit in woeth should be equal to oethCreditsHighres - donation
+    /// --- ERC4626
+    /// - The views functions should never revert
+    /// - If a user deposit more than 1wei of OETH, he should receive at least 1wei of WOETH.
+    ///     If he doesn't receive any WOETH, then he should have deposited exclusively 1 wei of OETH.
+    ///     If he deposit 0 OETH he should have the same amount of WOETH before and after the deposit.
+    /// - If a user withdraw or redeem 1 wei or more of WOETH, he should have less WOETH after the operation and more OETH.
+    ///     If he withdraw 0 WOETH, he should have the same amount of WOETH before and after the withdraw.
 
     function property_A() public view returns (bool) {
         if (__totalAssetBefore != __totalAssetAfter) {
@@ -111,11 +125,86 @@ abstract contract Properties is Setup {
             && __maxMint_success && __maxRedeem_success && __maxWithdraw_success;
     }
 
+    function property_4626_deposit_mint() public returns (bool) {
+        if (last_action == LastAction.DEPOSIT || last_action == LastAction.MINT) {
+            // If the user mint or deposit 0, then the woeth balance should be the same.
+            if (__user_deposit_mint_zero) {
+                if (__user_woeth_balance_after != __user_woeth_balance_before) {
+                    _logOETHAndWOETHBalances("A");
+                    return false;
+                }
+                return true;
+            }
+            // If the user woeth balance is the same after mint or deposit, this means that user deposited only 1wei
+            else if (__user_woeth_balance_after == __user_woeth_balance_before) {
+                if (__user_oeth_balance_after + t_4626_A != __user_oeth_balance_before) {
+                    _logOETHAndWOETHBalances("B");
+                    return false;
+                }
+            }
+            // Else the user should have deposited more than 1wei of OETH and received 1wei or more of WOETH
+            else {
+                if (
+                    __user_oeth_balance_before <= __user_oeth_balance_after
+                        || (__user_woeth_balance_after) <= __user_woeth_balance_before
+                ) {
+                    _logOETHAndWOETHBalances("C");
+                    return false;
+                }
+                return true;
+            }
+        }
+        return true;
+    }
+
+    function property_4626_withdraw_redeem() public returns (bool) {
+        if (last_action == LastAction.WITHDRAW || last_action == LastAction.REDEEM) {
+            // If a user redeem or withdraw 0, then the oeth and woeth balance should be the same.
+            if (__user_withdraw_redeem_zero) {
+                if (
+                    __user_oeth_balance_after != __user_oeth_balance_before
+                        || __user_woeth_balance_after != __user_woeth_balance_before
+                ) {
+                    _logOETHAndWOETHBalances("A");
+                    return false;
+                }
+                return true;
+            }
+            // If a user have same woeth balance after redeem or withdraw, then he should have the same oeth balance
+            else if (__user_woeth_balance_after == __user_woeth_balance_before) {
+                if (__user_oeth_balance_after != __user_oeth_balance_before) {
+                    _logOETHAndWOETHBalances("B");
+                    return false;
+                }
+            }
+            // If a user have less woeth balance after redeem or withdraw, then he should have more oeth balance
+            else if (__user_woeth_balance_before > __user_woeth_balance_after) {
+                if (__user_oeth_balance_before >= __user_oeth_balance_after) {
+                    _logOETHAndWOETHBalances("C");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     function approxEqAbs(uint256 a, uint256 b, uint256 tolerance) internal pure returns (bool) {
         if (a > b) {
             return (a - b) <= tolerance;
         } else {
             return (b - a) <= tolerance;
         }
+    }
+
+    function _logOETHAndWOETHBalances() internal {
+        emit Log.log_named_uint("user_oeth_balance_before", __user_oeth_balance_before);
+        emit Log.log_named_uint("user_oeth_balance_after", __user_oeth_balance_after);
+        emit Log.log_named_uint("user_woeth_balance_before", __user_woeth_balance_before);
+        emit Log.log_named_uint("user_woeth_balance_after", __user_woeth_balance_after);
+    }
+
+    function _logOETHAndWOETHBalances(string memory message) internal {
+        emit Log.log(message);
+        _logOETHAndWOETHBalances();
     }
 }
