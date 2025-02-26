@@ -35,6 +35,13 @@ abstract contract Properties is Setup {
     uint256 public __sum_redeemed;
     uint256 public __sum_withdrawn;
     uint256 public __sum_donated_credits;
+    bool public __convertToAssets_success = true;
+    bool public __convertToShares_success = true;
+    bool public __totalAssets_success = true;
+    bool public __maxDeposit_success = true;
+    bool public __maxMint_success = true;
+    bool public __maxRedeem_success = true;
+    bool public __maxWithdraw_success = true;
 
     // --- Tolerances ---
     uint256 public t_A = 0;
@@ -97,6 +104,11 @@ abstract contract Properties is Setup {
             return false;
         }
         return true;
+    }
+
+    function property_4626_views() public view returns (bool) {
+        return __convertToAssets_success && __convertToShares_success && __totalAssets_success && __maxDeposit_success
+            && __maxMint_success && __maxRedeem_success && __maxWithdraw_success;
     }
 
     function approxEqAbs(uint256 a, uint256 b, uint256 tolerance) internal pure returns (bool) {

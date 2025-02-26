@@ -231,6 +231,39 @@ abstract contract TargetFunctions is Properties {
         __totalAssetAfter = woeth.totalAssets();
     }
 
+    /// @notice Handle views function 
+    function handler_views(uint8 _userId, uint256 _value) public {
+        // Convert to assets
+        uint256 shares = clamp(_value, 0, type(uint96).max, USE_LOGS);
+        (__convertToAssets_success,) =
+            address(woeth).call(abi.encodeWithSelector(woeth.convertToAssets.selector, shares));
+
+        // Convert to shares
+        uint256 assets = clamp(_value, 0, type(uint96).max, USE_LOGS);
+        (__convertToShares_success,) =
+            address(woeth).call(abi.encodeWithSelector(woeth.convertToShares.selector, assets));
+
+        // Total assets
+        (__totalAssets_success,) = address(woeth).call(abi.encodeWithSelector(woeth.totalAssets.selector));
+
+        // Max deposit
+        (__maxDeposit_success,) =
+            address(woeth).call(abi.encodeWithSelector(woeth.maxDeposit.selector, users[_userId % users.length]));
+
+        // Max mint
+        (__maxMint_success,) =
+            address(woeth).call(abi.encodeWithSelector(woeth.maxMint.selector, users[_userId % users.length]));
+
+        // Max withdraw
+        (__maxWithdraw_success,) =
+            address(woeth).call(abi.encodeWithSelector(woeth.maxWithdraw.selector, users[_userId % users.length]));
+
+        // Max redeem
+        (__maxRedeem_success,) =
+            address(woeth).call(abi.encodeWithSelector(woeth.maxRedeem.selector, users[_userId % users.length]));
+        // No need to update LastAction and totalAssetBefore/After as views are read-only.
+    }
+
     function afterInvariant() public {
         for (uint256 i = 0; i < users.length; i++) {
             address _user = users[i];
