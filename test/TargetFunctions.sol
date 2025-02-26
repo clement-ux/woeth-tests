@@ -29,6 +29,7 @@ abstract contract TargetFunctions is Properties {
         // Mint OETH to the user.
         _mintOETHTo(user, _amountToMint);
         uint256 amountToMint = oeth.balanceOf(user);
+        if (amountToMint == 0) return; // Todo: Log return reason
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
@@ -59,7 +60,9 @@ abstract contract TargetFunctions is Properties {
         // Find a random user amongst the users.
         address user = users[_userId % users.length];
 
+        // Prevent minting 0 shares as it will revert
         _sharesToMint = uint88(clamp(uint256(_sharesToMint), 1, type(uint88).max, USE_LOGS));
+
         // Convert shares in OETH amount (to ensure mintable amount).
         uint256 amountToMint = woeth.previewMint(_sharesToMint);
         if (amountToMint >= _mintableAmount()) return; // Todo: Log return reason
@@ -109,10 +112,10 @@ abstract contract TargetFunctions is Properties {
                 break;
             }
         }
-        if (user == address(0)) return; // Todo: Log return reason
+        if (user == address(0) || balance == 0) return; // Todo: Log return reason
 
         // Bound amout to redeem.
-        _amountToRedeem = uint96(clamp(uint256(_amountToRedeem), 0, balance, USE_LOGS));
+        _amountToRedeem = uint96(clamp(uint256(_amountToRedeem), 1, balance, USE_LOGS));
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
@@ -157,10 +160,10 @@ abstract contract TargetFunctions is Properties {
                 break;
             }
         }
-        if (user == address(0)) return; // Todo: Log return reason
+        if (user == address(0) || balance == 0) return; // Todo: Log return reason
 
         // Bound amout to withdraw.
-        _sharesToWithdraw = uint96(clamp(uint256(_sharesToWithdraw), 0, balance, USE_LOGS));
+        _sharesToWithdraw = uint96(clamp(uint256(_sharesToWithdraw), 1, balance, USE_LOGS));
         uint256 amountToWithdraw = woeth.convertToAssets(_sharesToWithdraw);
 
         // --- Ghost data before ---
