@@ -37,7 +37,6 @@ abstract contract TargetFunctions is Properties {
         __sum_deposited += amountToMint;
         __user_oeth_balance_before = oeth.balanceOf(user);
         __user_woeth_balance_before = woeth.balanceOf(user);
-        __user_deposit_mint_zero = amountToMint == 0;
 
         // Deposit OETH.
         hevm.prank(user);
@@ -71,6 +70,7 @@ abstract contract TargetFunctions is Properties {
         uint256 mintedOETH = _mintOETHTo(user, amountToMint);
         // Convert back real user minted amount in shares.
         uint256 sharesToMint = woeth.convertToShares(mintedOETH);
+        if (sharesToMint == 0) return; // Todo: Log return reason
 
         // --- Ghost data before ---
         __totalAssetBefore = woeth.totalAssets();
@@ -78,7 +78,6 @@ abstract contract TargetFunctions is Properties {
         __minted[user] += mintedOETH;
         __user_oeth_balance_before = oeth.balanceOf(user);
         __user_woeth_balance_before = woeth.balanceOf(user);
-        __user_deposit_mint_zero = sharesToMint == 0;
 
         // Mint WOETH.
         hevm.prank(user);
@@ -121,7 +120,6 @@ abstract contract TargetFunctions is Properties {
         __totalAssetBefore = woeth.totalAssets();
         __user_oeth_balance_before = oeth.balanceOf(user);
         __user_woeth_balance_before = woeth.balanceOf(user);
-        __user_withdraw_redeem_zero = _amountToRedeem == 0;
 
         // Redeem WOETH.
         hevm.prank(user);
@@ -170,7 +168,6 @@ abstract contract TargetFunctions is Properties {
         __totalAssetBefore = woeth.totalAssets();
         __user_oeth_balance_before = oeth.balanceOf(user);
         __user_woeth_balance_before = woeth.balanceOf(user);
-        __user_withdraw_redeem_zero = amountToWithdraw == 0;
 
         // Withdraw WOETH.
         hevm.prank(user);

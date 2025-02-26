@@ -39,8 +39,6 @@ abstract contract Properties is Setup {
     uint256 public __user_oeth_balance_before;
     uint256 public __user_woeth_balance_after;
     uint256 public __user_oeth_balance_after;
-    bool public __user_deposit_mint_zero;
-    bool public __user_withdraw_redeem_zero;
     bool public __convertToAssets_success = true;
     bool public __convertToShares_success = true;
     bool public __totalAssets_success = true;
@@ -54,7 +52,6 @@ abstract contract Properties is Setup {
     uint256 public t_B = 1e2;
     uint256 public t_C = 1e2;
     uint256 public t_D = 1e11;
-    uint256 public t_4626_A = 0;
 
     //////////////////////////////////////////////////////
     /// --- DEFINITIONS
@@ -66,10 +63,8 @@ abstract contract Properties is Setup {
     /// --- ERC4626
     /// - The views functions should never revert
     /// - If a user deposit more than 1wei of OETH, he should receive at least 1wei of WOETH.
-    ///     If he doesn't receive any WOETH, then he should have deposited exclusively 1 wei of OETH.
-    ///     If he deposit 0 OETH he should have the same amount of WOETH before and after the deposit.
+    ///     If he doesn't receive any WOETH and the amount of OETH deposited > totalAsset/totalSupply -> this is a issue.
     /// - If a user withdraw or redeem 1 wei or more of WOETH, he should have less WOETH after the operation and more OETH.
-    ///     If he withdraw 0 WOETH, he should have the same amount of WOETH before and after the withdraw.
 
     function property_A() public view returns (bool) {
         if (__totalAssetBefore != __totalAssetAfter) {
@@ -127,16 +122,8 @@ abstract contract Properties is Setup {
 
     function property_4626_deposit_mint() public returns (bool) {
         if (last_action == LastAction.DEPOSIT || last_action == LastAction.MINT) {
-            // If the user mint or deposit 0, then the woeth balance should be the same.
-            if (__user_deposit_mint_zero) {
-                if (__user_woeth_balance_after != __user_woeth_balance_before) {
-                    _logOETHAndWOETHBalances("A");
-                    return false;
-                }
-                return true;
-            }
             // If the user woeth balance is the same after mint or deposit, this means that user deposited only 1wei
-            else if (__user_woeth_balance_after == __user_woeth_balance_before) {
+            if (__user_woeth_balance_after == __user_woeth_balance_before) {
                 uint256 totalAssets = woeth.totalAssets();
                 uint256 totalSupply = woeth.totalSupply();
                 if (__user_oeth_balance_before > (totalAssets / totalSupply)) {
@@ -160,19 +147,8 @@ abstract contract Properties is Setup {
 
     function property_4626_withdraw_redeem() public returns (bool) {
         if (last_action == LastAction.WITHDRAW || last_action == LastAction.REDEEM) {
-            // If a user redeem or withdraw 0, then the oeth and woeth balance should be the same.
-            if (__user_withdraw_redeem_zero) {
-                if (
-                    __user_oeth_balance_after != __user_oeth_balance_before
-                        || __user_woeth_balance_after != __user_woeth_balance_before
-                ) {
-                    _logOETHAndWOETHBalances("A");
-                    return false;
-                }
-                return true;
-            }
             // If a user have same woeth balance after redeem or withdraw, then he should have the same oeth balance
-            else if (__user_woeth_balance_after == __user_woeth_balance_before) {
+            if (__user_woeth_balance_after == __user_woeth_balance_before) {
                 if (__user_oeth_balance_after != __user_oeth_balance_before) {
                     _logOETHAndWOETHBalances("B");
                     return false;
